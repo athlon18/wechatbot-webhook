@@ -14,7 +14,7 @@ module.exports = function registerLoginCheck({ app, bot }) {
       success = false
     })
     .on('login', async (user) => {
-      message = user + 'is already login'
+      message = JSON.stringify(user)
       success = true
     })
     .on('logout', () => {
