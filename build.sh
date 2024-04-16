@@ -1,0 +1,2 @@
+docker build -t wechatbot-webhook:windows .
+docker run -d --name wxBotWebhook -p 8080:8080 -p 3001:3001 -p 8022:22 -e RECVD_MSG_API=http://host.docker.internal:8999/api/wxMessage -e LOGIN_API_TOKEN=wx wechatbot-webhook:windows
