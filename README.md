@@ -1,15 +1,16 @@
 <div align="center">
-<img src="https://cdn.jsdelivr.net/gh/danni-cool/danni-cool@cdn/image/wechatbot-webhook.png" width="500" height="251"/>
+<img src="./docs/Jietu20240506-220141%402x.jpg" width="500"/>
 
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/danni-cool/wechatbot-webhook/release.yml) ![npm dowloads](https://img.shields.io/npm/dm/wechatbot-webhook?label=npm/downloads)
  ![Docker Pulls](https://img.shields.io/docker/pulls/dannicool/docker-wechatbot-webhook) ![GitHub release (with filter)](https://img.shields.io/github/v/release/danni-cool/wechatbot-webhook)
 <a href="https://discord.gg/qBF9VsBdc8"><img src="https://img.shields.io/discord/1165844612473172088?logo=Discord&link=https%3A%2F%2Fdiscord.gg%qBF9VsBdc8" /></a>
 
 
-[🚢 Docker 镜像](https://hub.docker.com/repository/docker/dannicool/docker-wechatbot-webhook/general) | [📦 NPM包](https://www.npmjs.com/package/wechatbot-webhook)｜[🔍 FAQ](https://github.com/danni-cool/wechatbot-webhook/issues/72)
+[🚢 Docker 镜像](https://hub.docker.com/r/dannicool/docker-wechatbot-webhook/tags) | [📦 NPM包](https://www.npmjs.com/package/wechatbot-webhook)｜[🔍 FAQ](https://github.com/danni-cool/wechatbot-webhook/issues/72)
+
+一个小小的微信机器人webhook，帮你抹平了很多自己开发的障碍，基于 http 请求
 </div>
 
-开箱即用的微信webhook机器人，通过 http 接口调用即可实现微信消息的发送和接收，作为基于 wechaty 的消息机器人服务在稳定性上做了较多优化。
 
 ## ✨ Features
 
@@ -34,7 +35,8 @@
 | 接收文件 | ✅ |  |
 | 接收公众号推文链接 | ✅ |  |
 | 接收系统通知 | ✅ 上线通知 / 掉线通知 / 异常通知 |  |
-| [快捷回复](https://github.com/danni-cool/wechatbot-webhook?tab=readme-ov-file#2-%E6%94%B6%E6%B6%88%E6%81%AF-api) | ✅  | ✅ |
+| [头像获取](#33-获取静态资源接口) | ✅ |  |
+| [快捷回复](#返回值-response-结构可选) | ✅  | ✅ |
 | **<群管理>** |  |  |
 | **<好友管理>** |  |  |
 | 接收好友申请 | ✅ |  |
@@ -63,6 +65,8 @@ npx wechatbot-webhook
 ```
 
 > 除非掉线，默认记住上次登录，换帐号请运行以下命令 `npx wechatbot-webhook -r`
+
+> 如遇安装报错，请确保自己的node版本 >= 18.14.1 [#227](https://github.com/danni-cool/wechatbot-webhook/issues/227)
 
 ### 2. 复制推消息 api
 
@@ -174,6 +178,22 @@ curl --location 'http://localhost:3001/webhook/msg/v2?token=[YOUR_PERSONAL_TOKEN
 }'
 ```
 
+##### 发文件 url 同时支持修改成目标文件名
+
+> 有些情况下，直接发送 url 文件名可能不是我们想要的，给 url 拼接 query 参数 `$alias` 可用于指定发送给目标的文件名（注意：别名不做文件转换）
+
+```bash
+curl --location 'http://localhost:3001/webhook/msg/v2?token=[YOUR_PERSONAL_TOKEN]' \
+--header 'Content-Type: application/json' \
+--data '{
+    "to": "testUser",
+    "data": { 
+      "type": "fileUrl" , 
+      "content": "https://download.samplelib.com/jpeg/sample-clouds-400x300.jpg?$alias=cloud.jpg" 
+    }
+}'
+```
+
 ##### 发给群消息
 
 ```bash
@@ -278,7 +298,7 @@ curl --location 'http://localhost:3001/webhook/msg/v2?token=[YOUR_PERSONAL_TOKEN
 
 | 参数    | 说明                                                                             | 数据类型 | 默认值 | 可否为空 | 可选值  |
 | ------- | -------------------------------------------------------------------------------- | -------- | ------ | -------- | ------- |
-| to      | 消息接收方，传入`String` 默认是发给昵称（群名同理）, 传入 Json String 结构支持发给备注过的人，比如："{alias: '备注名'}"，群名不支持备注名称                                       | `String` | -      | N        | -       |
+| to      | 消息接收方，传入`String` 默认是发给昵称（群名同理）, 传入 Json String 结构支持发给备注过的人，比如：--form 'to="{alias: \"小号\"}"'，群名不支持备注名称                                       | `String` | -      | N        | -       |
 | isRoom  | **是否发的群消息**，formData纯文本只能使用 `String` 类型，`1`代表是，`0`代表否， | `String` | `0`    | Y        | `1` `0` |
 | content | **文件**，本地文件一次只能发一个，多个文件手动调用多次                           | `Binary` | -      | N        | -       |
 
@@ -301,8 +321,6 @@ curl --location --request POST 'http://localhost:3001/webhook/msg?token=[YOUR_PE
 ```
 
 ### 2. 收消息 API
-
-> 收消息API现在支持通过返回值实现**快捷回复**，无需再发起 post 请求，一个 API 搞定接收消息后回复
 
 #### `payload` 结构
   - Methods: `POST`
@@ -343,7 +361,7 @@ curl --location 'https://your.recvdapi.com' \
 
 #### 返回值 `response` 结构（可选）
 
-> 如果期望用 `RECVD_MSG_API` 收消息后立即回复，请按以下结构返回返回值，无返回值则不会回复消息
+> 如果期望用 `RECVD_MSG_API` 收消息后立即回复(**快捷回复**)，请按以下结构返回返回值，无返回值则不会回复消息
 
 - ContentType: `json`
 
@@ -394,13 +412,12 @@ curl --location 'https://your.recvdapi.com' \
 #### token 配置说明
 > 除了在 docker 启动时配置token，在默认缺省 token 的情况，会默认生成一个写入 `.env` 文件中
 
-#### `/login?token=[YOUR_PERSONAL_TOKEN]`
-
-- **描述**：获取登录二维码接口。
+#### 3.1 获取登录二维码接口
+- **地址**：`/login`
 - **methods**: `GET`
 - **query**: token
-
-**status**: `200`
+- **status**: `200`
+- **example**: http://localhost:3001/login?token=[YOUR_PERSONAL_TOKEN]
 
 ##### 登录成功
 
@@ -414,14 +431,54 @@ curl --location 'https://your.recvdapi.com' \
 
 展示微信登录扫码页面
 
-#### `/healthz?token=[YOUR_PERSONAL_TOKEN]`
+#### 3.2 健康检测接口
 
-- **描述**：健康检测接口。
+可以主动轮询该接口，检查服务是否正常运行
+
+- **地址**：`/healthz`
 - **methods**: `GET`
 - **query**: token
 - **status**: `200`
+- **example**: http://localhost:3001/healthz?token=[YOUR_PERSONAL_TOKEN]
 
 微信已登录, 返回纯文本 `healthy`，否则返回 `unHealthy`
+
+#### 3.3 获取静态资源接口
+
+从 2.8.0 版本开始，可以通过本接口访问到头像等静态资源，具体见 [recvd_api 数据结构示例的 avatar 字段](/docs/recvdApi.example.md#2-formdatasource-string)
+
+注意所有上报 recvd_api 的静态资源地址不会默认带上 token, 需要自己拼接，否则会返回 401 错误, 请确保自己微信已登录，需要通过登录态去获取资源
+
+- **地址**：`/resouces`
+- **methods**: `GET`
+- **query**: 
+  - token: 登录token
+  - media: encode过的相对路径，比如 `/avatar/1234567890.jpg` encode为 `avatar%2F1234567890.jpg`
+- **status**: `200` `404` `401`
+
+- **example**：http://localhost:3001/resouces?media=%2Fcgi-bin%2Fmmwebwx-bin%2Fwebwxgetheadimg%3Fseq%3D83460%26username%3D%40%4086815a%26skey%3D&token=[YOUR_PERSONAL_TOKEN]
+
+##### status: `200`
+
+成功获取资源, 返回静态资源文件
+
+##### status: `404`
+
+获取资源失败
+
+##### status: `401` 未携带登录token
+
+```json
+{"success":false, "message":"Unauthorized: Access is denied due to invalid credentials."}
+```
+
+##### status: `401` 微信登录态已过期
+
+```json
+{
+   "success": false, "message": "you must login first"
+}
+```
 
 
 ## 🌟 Star History
@@ -430,7 +487,9 @@ curl --location 'https://your.recvdapi.com' \
 
 ## Contributors
 
-![](https://contrib.rocks/image?repo=danni-cool/wechatbot-webhook)
+Thanks to all our contributors!
+
+<a href="https://github.com/danni-cool/wechatbot-webhook/graphs/contributors">![](https://contrib.rocks/image?repo=danni-cool/wechatbot-webhook)</a>
 
 ## ⏫ 更新日志
 
