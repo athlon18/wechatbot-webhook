@@ -8,14 +8,14 @@
 
 [🚢 Docker 镜像](https://hub.docker.com/r/dannicool/docker-wechatbot-webhook/tags) | [📦 NPM包](https://www.npmjs.com/package/wechatbot-webhook)｜[🔍 FAQ](https://github.com/danni-cool/wechatbot-webhook/issues/72)
 
-一个小小的微信机器人webhook，帮你抹平了很多自己开发的障碍，基于 http 请求
+一个小小的微信机器人webhook，帮你抹平了很多自己开发的障碍，基于 http 请求，与hooks微信不同，因为基于web api，所以优势在于可以部署到arm架构等设备上
 </div>
 
 
 ## ✨ Features
 
 > [!Caution] 
-> 当前版本基于web协议，其支持的功能有限，也不完美，除了bug修补和稳定性功能外，不再接收新的 feature request，后续精力会放到 windows 分支上，感兴趣的可以点个 watch 👀
+> 项目目前基于web微信，其本身就有被限制风险，另外大概两天一掉线，除了正常功能修补，不接新的 feature request。 windows 协议正在WIP，近期应该会和大家见面！
 
 | **功能** | web协议 | windows协议 |
 | --- | --- | --- |
