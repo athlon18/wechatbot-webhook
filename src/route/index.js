@@ -1,4 +1,6 @@
 const Middleware = require('../middleware/index')
+const fs = require('fs')
+const path = require('path')
 /**
  * 注册路由
  * @param {Object} param
@@ -18,6 +20,15 @@ module.exports = function registerRoute({ app, bot }) {
   app.use('*', attachData)
   // 全局鉴权
   app.use(Middleware.verifyToken)
+
+  // bugfix serveStatic cannot use a project root path, it actually based on cwd path
+  app.get('/static/*', async (c) => {
+    //获取*号的路径
+    const filePath = path.join(__dirname, `../${c.req.path}`)
+    return c.body(fs.readFileSync(filePath, {
+      encoding: 'utf-8'
+    }))
+  })
 
   require('./msg')({ app, bot })
   require('./login')({ app, bot })
